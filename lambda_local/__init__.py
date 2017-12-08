@@ -41,17 +41,16 @@ def invoke_function():
     module_path = args.function
 
     if '.' not in module_path:
-        raise Exception('Incorrect function: "{}", please include dir/module'.format(module_path))
+        raise Exception('Incorrect function: "{}", e.g. path.to.module.function_name'.format(module_path))
+
+    sys.path.append('.')
 
     if args.library:
         sys.path.append(args.library)
 
-    if '/' in module_path:
-        path, module_path = module_path.rsplit('/', 1)
-        sys.path.append(path)
-
     module_name, function_name = module_path.rsplit('.', 1)
-    module = importlib.import_module(module_name)
+
+    module = importlib.import_module('{}'.format(module_name))
     if args.event_file:
         event = json.load(open(args.event_file, 'r'))
     else:
