@@ -2,7 +2,9 @@ import argparse
 import time
 import importlib
 import json
+import platform
 import sys
+from threading import Thread
 import uuid
 
 
@@ -39,9 +41,7 @@ def parse_args():
     return parser.parse_args()
 
 
-def invoke_function():
-    args = parse_args()
-
+def _build_function(args):
     if '.' not in args.function:
         raise Exception(
             'Incorrect function: "{}", e.g. path.to.module.function_name'.format(args.function))
@@ -52,25 +52,43 @@ def invoke_function():
         sys.path.append(args.library)
 
     module_name, function_name = args.function.rsplit('.', 1)
-
     module = importlib.import_module('{}'.format(module_name))
+
+    return getattr(module, function_name)
+
+def invoke_function():
+    args = parse_args()
+
+    func = _build_function(args)
+
     if args.event_file:
         event = json.load(open(args.event_file, 'r'))
     else:
         event = json.loads(args.event)
 
     request_id = uuid.uuid4()
-    print('START RequestId: {} Version: $LATEST'.format(request_id))
+    print('START RequestId: {} Version: $LATEST Python: {}'.format(
+        request_id, platform.python_version()))
+
+    lambda_context = LambdaContext(func.__name__, args.region, args.memory_mb)
 
     start_time = time.time()
-    getattr(module, function_name)(event, LambdaContext(function_name, args.region, args.memory_mb))
-    duration_ms = round((time.time() - start_time) * 1000, 2)
+    try:
+        thread = Thread(target=func, args=(event, lambda_context, ))
+        thread.start()
+        timeout = int(args.timeout)
+        timeout = timeout if timeout > 0 else None
+        thread.join(timeout=timeout)
+        if thread.isAlive():
+            raise Exception('Function timeout, limit {}'.format(args.timeout))
+    finally:
+        duration_ms = round((time.time() - start_time) * 1000, 2)
 
-    print('END RequestId: {}'.format(request_id))
-    # TODO: get real memory used for running this lambda function
-    print('REPORT RequestId: {}	Duration: {} ms	Billed '
-          'Duration: {} ms Memory Size: {} MB	Max Memory Used: {} MB'.format(
-              request_id, duration_ms, duration_ms, args.memory_mb, args.memory_mb))
+        print('END RequestId: {}'.format(request_id))
+        # TODO: get real memory used for running this lambda function?
+        print('REPORT RequestId: {}	Duration: {} ms	Billed '
+            'Duration: {} ms Memory Size: {} MB	Max Memory Used: {} MB'.format(
+                request_id, duration_ms, duration_ms, args.memory_mb, 'n/a'))
 
 
 def package_lambda():
