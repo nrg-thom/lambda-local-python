@@ -2,17 +2,9 @@
 
 ### 1 Install `lambda-local-python`
 
-#### 1.1 Install from source
-
 ```bash
-git clone https://github.com/willwhy/lambda-local-python.git
-cd lambda-local-python
-pip install -e .
+pip install lambda-local-python
 ```
-
-#### 1.2 Install using pip
-
-Coming later..
 
 ### 2 Run lambda locally
 
