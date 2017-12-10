@@ -1,3 +1,5 @@
+# Debug in vscode (Visual Studio Code)
+
 ## Install `lambda-local-python`
 
 ```bash
