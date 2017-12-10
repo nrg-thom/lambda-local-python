@@ -17,7 +17,7 @@
                 "-f",
                 "lambda_function.main.handler",
                 "-t",
-                "300",
+                "-1",
                 "-m",
                 "256",
                 "-r",
