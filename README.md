@@ -23,5 +23,5 @@ Refer to examples/vscode-lambda-debug.
 
 Refer to examples.
 
-- simple-lambda
-- vscode-lambda-debug
+- [simple-lambda](examples/simple-lambda)
+- [vscode-lambda-debug](examples/vscode-lambda-debug)
