@@ -7,14 +7,16 @@ import uuid
 
 
 class LambdaContext(object):
-    def __init__(self, function_name, region):
+    def __init__(self, function_name, region, memory_mb):
         self.function_name = function_name
         self.function_version = '$LATEST'
-        self.invoked_function_arn = 'arn:aws:lambda:{}:123456789012:function:{}'.format(region, function_name)
-        self.memory_limit_in_mb = '128'
+        self.invoked_function_arn = 'arn:aws:lambda:{}:123456789012:function:{}'.format(
+            region, function_name)
+        self.memory_limit_in_mb = '{}'.format(memory_mb)
         self.aws_request_id = str(uuid.uuid4())
         self.log_group_name = '/aws/lambda/{}'.format(function_name)
-        self.log_stream_name = '{}/[$LATEST]{}'.format(time.strftime('%Y/%m/%d', time.gmtime()), uuid.uuid4().hex)
+        self.log_stream_name = '{}/[$LATEST]{}'.format(time.strftime(
+            '%Y/%m/%d', time.gmtime()), uuid.uuid4().hex)
         self.identity = None
         self.client_context = None
 
@@ -22,33 +24,34 @@ class LambdaContext(object):
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('-f', '--function', type=str, required=True,
-        help='Full path of the function, include directory, module, and function name')
+        help='Full path of the function, include module path and function name')
     parser.add_argument('-l', '--library', type=str, required=False, help='extra library path')
     parser.add_argument('-t', '--timeout', type=int, required=False, default=300,
         help='Lambda timeout in seconds, default 300')
+    parser.add_argument('-m', '--memory_mb', type=int, required=False, default=128,
+        help='Lambda memory in mb, default 128')
     parser.add_argument('-r', '--region', type=str, required=False, default='us-west-2',
         help='Region of the lambda function')
     parser.add_argument('-e', '--event', type=str, required=False, default='{}',
         help='JSON formated event, use file version if -E is specified')
     parser.add_argument('-E', '--event_file', type=str, required=False,
-        help='File path contains JSON formatted event, use file version if this option is specified')
+        help='File path contains JSON formatted event, use file version if -E is specified')
     return parser.parse_args()
 
 
 def invoke_function():
     args = parse_args()
 
-    module_path = args.function
-
-    if '.' not in module_path:
-        raise Exception('Incorrect function: "{}", e.g. path.to.module.function_name'.format(module_path))
+    if '.' not in args.function:
+        raise Exception(
+            'Incorrect function: "{}", e.g. path.to.module.function_name'.format(args.function))
 
     sys.path.append('.')
 
     if args.library:
         sys.path.append(args.library)
 
-    module_name, function_name = module_path.rsplit('.', 1)
+    module_name, function_name = args.function.rsplit('.', 1)
 
     module = importlib.import_module('{}'.format(module_name))
     if args.event_file:
@@ -56,8 +59,19 @@ def invoke_function():
     else:
         event = json.loads(args.event)
 
-    getattr(module, function_name)(event, LambdaContext(function_name, args.region))
+    request_id = uuid.uuid4()
+    print('START RequestId: {} Version: $LATEST'.format(request_id))
+
+    start_time = time.time()
+    getattr(module, function_name)(event, LambdaContext(function_name, args.region, args.memory_mb))
+    duration_ms = round((time.time() - start_time) * 1000, 2)
+
+    print('END RequestId: {}'.format(request_id))
+    # TODO: get real memory used for running this lambda function
+    print('REPORT RequestId: {}	Duration: {} ms	Billed '
+          'Duration: {} ms Memory Size: {} MB	Max Memory Used: {} MB'.format(
+              request_id, duration_ms, duration_ms, args.memory_mb, args.memory_mb))
 
 
-if __name__ == '__main__':
-    invoke_function()
+def package_lambda():
+    print('TODO: package lambda function as a zip file')

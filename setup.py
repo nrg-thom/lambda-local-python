@@ -21,5 +21,8 @@ setup(name='lambda-local-python',
       include_package_data=True,
       zip_safe=False,
       entry_points={
-          'console_scripts': ['lambda-local-python=lambda_local:invoke_function']
+        'console_scripts': [
+            'lambda-local-python=lambda_local:invoke_function',
+            'lambda-local-python-package=lambda_local:package_lambda'
+        ]
       })
