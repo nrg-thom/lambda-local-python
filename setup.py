@@ -13,7 +13,7 @@ setup(name='lambda-local-python',
           'License :: OSI Approved :: MIT License'
       ],
       keywords="AWS Lambda, vscode, Visual Studio Code, code",
-      author="Wenhua Yang",
+      author="Will Wenhua Yang",
       author_email="will.whyang@gmail.com",
       url="https://github.com/willwhy/lambda-local-python",
       license="MIT",
