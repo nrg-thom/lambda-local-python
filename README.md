@@ -17,7 +17,7 @@ ENV=my_env lambda-local-python -f path.to.module.function_name
 
 ### Debug in vscode
 
-Refer to examples/vscode-lambda-debug.
+Refer to [examples/vscode-lambda-debug](examples/vscode-lambda-debug).
 
 ## Examples
 
