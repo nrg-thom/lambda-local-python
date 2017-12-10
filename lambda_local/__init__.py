@@ -7,12 +7,12 @@ import uuid
 
 
 class LambdaContext(object):
-    def __init__(self, function_name, region):
+    def __init__(self, function_name, region, memory_mb):
         self.function_name = function_name
         self.function_version = '$LATEST'
         self.invoked_function_arn = 'arn:aws:lambda:{}:123456789012:function:{}'.format(
             region, function_name)
-        self.memory_limit_in_mb = '128'
+        self.memory_limit_in_mb = '{}'.format(memory_mb)
         self.aws_request_id = str(uuid.uuid4())
         self.log_group_name = '/aws/lambda/{}'.format(function_name)
         self.log_stream_name = '{}/[$LATEST]{}'.format(time.strftime(
@@ -28,6 +28,8 @@ def parse_args():
     parser.add_argument('-l', '--library', type=str, required=False, help='extra library path')
     parser.add_argument('-t', '--timeout', type=int, required=False, default=300,
         help='Lambda timeout in seconds, default 300')
+    parser.add_argument('-m', '--memory_mb', type=int, required=False, default=128,
+        help='Lambda memory in mb, default 128')
     parser.add_argument('-r', '--region', type=str, required=False, default='us-west-2',
         help='Region of the lambda function')
     parser.add_argument('-e', '--event', type=str, required=False, default='{}',
@@ -57,4 +59,19 @@ def invoke_function():
     else:
         event = json.loads(args.event)
 
-    getattr(module, function_name)(event, LambdaContext(function_name, args.region))
+    request_id = uuid.uuid4()
+    print('START RequestId: {} Version: $LATEST'.format(request_id))
+
+    start_time = time.time()
+    getattr(module, function_name)(event, LambdaContext(function_name, args.region, args.memory_mb))
+    duration_ms = round((time.time() - start_time) * 1000, 2)
+
+    print('END RequestId: {}'.format(request_id))
+    # TODO: get real memory used for running this lambda function
+    print('REPORT RequestId: {}	Duration: {} ms	Billed '
+          'Duration: {} ms Memory Size: {} MB	Max Memory Used: {} MB'.format(
+              request_id, duration_ms, duration_ms, args.memory_mb, args.memory_mb))
+
+
+def package_lambda():
+    print('TODO: package lambda function as a zip file')

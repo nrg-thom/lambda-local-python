@@ -1,0 +1,52 @@
+{
+    "Records": [
+        {
+            "eventID": "shardId-000000000000:49545115243490985018280067714973144582180062593244200961",
+            "eventVersion": "1.0",
+            "kinesis": {
+                "approximateArrivalTimestamp": 1428537600,
+                "partitionKey": "partitionKey-1",
+                "data": "eyJjb3VudCI6IDEwLCAiY29zdCI6IDEzLjV9",
+                "kinesisSchemaVersion": "1.0",
+                "sequenceNumber": "49545115243490985018280067714973144582180062593244200961"
+            },
+            "invokeIdentityArn": "arn:aws:iam::EXAMPLE",
+            "eventName": "aws:kinesis:record",
+            "eventSourceARN": "arn:aws:kinesis:EXAMPLE",
+            "eventSource": "aws:kinesis",
+            "awsRegion": "us-west-2"
+        },
+        {
+            "eventID": "shardId-000000000000:49545115243490985018280067714973144582180062593244300961",
+            "eventVersion": "1.0",
+            "kinesis": {
+                "approximateArrivalTimestamp": 1428537600,
+                "partitionKey": "partitionKey-1",
+                "data": "eyJjb3VudCI6IDIxLCAiY29zdCI6IDI3LjN9",
+                "kinesisSchemaVersion": "1.0",
+                "sequenceNumber": "49545115243490985018280067714973144582180062593244300961"
+            },
+            "invokeIdentityArn": "arn:aws:iam::EXAMPLE",
+            "eventName": "aws:kinesis:record",
+            "eventSourceARN": "arn:aws:kinesis:EXAMPLE",
+            "eventSource": "aws:kinesis",
+            "awsRegion": "us-west-2"
+        },
+        {
+            "eventID": "shardId-000000000000:49545115243490985018280067714973144582180062593244400961",
+            "eventVersion": "1.0",
+            "kinesis": {
+                "approximateArrivalTimestamp": 1428537600,
+                "partitionKey": "partitionKey-1",
+                "data": "eyJjb3VudCI6IDcsICJjb3N0IjogOS44fQ==",
+                "kinesisSchemaVersion": "1.0",
+                "sequenceNumber": "49545115243490985018280067714973144582180062593244400961"
+            },
+            "invokeIdentityArn": "arn:aws:iam::EXAMPLE",
+            "eventName": "aws:kinesis:record",
+            "eventSourceARN": "arn:aws:kinesis:EXAMPLE",
+            "eventSource": "aws:kinesis",
+            "awsRegion": "us-west-2"
+        }
+    ]
+}
