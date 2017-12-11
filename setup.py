@@ -2,7 +2,7 @@ import sys
 from setuptools import setup, find_packages
 
 setup(name='lambda-local-python',
-      version="0.0.1",
+      version="0.0.4",
       description="Run/debug python aws lambda functions locally",
       classifiers=[
           'Development Status :: 3 - Alpha',
@@ -16,7 +16,6 @@ setup(name='lambda-local-python',
       author="Will Wenhua Yang",
       author_email="will.whyang@gmail.com",
       url="https://github.com/willwhy/lambda-local-python",
-      download_url="https://github.com/willwhy/lambda-local-python/archive/v0.0.1.tar.gz",
       license="MIT",
       packages=find_packages(exclude=['examples', 'tests']),
       include_package_data=True,

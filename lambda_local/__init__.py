@@ -1,10 +1,11 @@
 import argparse
+from contextlib import contextmanager
 import time
 import importlib
 import json
 import platform
+import signal
 import sys
-from threading import Thread
 import uuid
 
 
@@ -56,6 +57,24 @@ def _build_function(args):
 
     return getattr(module, function_name)
 
+
+@contextmanager
+def lambda_timer(timeout):
+    def handler(signum, frame):
+        raise Exception('Timeout after {}s'.format(timeout))
+
+    if timeout > 0:
+        signal.signal(signal.SIGALRM, handler)
+        signal.alarm(timeout)
+
+        try:
+            yield
+        finally:
+            signal.alarm(0)
+    else:
+        yield
+
+
 def invoke_function():
     args = parse_args()
 
@@ -73,22 +92,16 @@ def invoke_function():
     lambda_context = LambdaContext(func.__name__, args.region, args.memory_mb)
 
     start_time = time.time()
-    try:
-        thread = Thread(target=func, args=(event, lambda_context, ))
-        thread.start()
-        timeout = int(args.timeout)
-        timeout = timeout if timeout > 0 else None
-        thread.join(timeout=timeout)
-        if thread.isAlive():
-            raise Exception('Function timeout, limit {}'.format(args.timeout))
-    finally:
-        duration_ms = round((time.time() - start_time) * 1000, 2)
 
-        print('END RequestId: {}'.format(request_id))
-        # TODO: get real memory used for running this lambda function?
-        print('REPORT RequestId: {}	Duration: {} ms	Billed '
-            'Duration: {} ms Memory Size: {} MB	Max Memory Used: {} MB'.format(
-                request_id, duration_ms, duration_ms, args.memory_mb, 'n/a'))
+    with lambda_timer(args.timeout):
+        func(event, lambda_context)
+
+    duration_ms = round((time.time() - start_time) * 1000, 2)
+    print('END RequestId: {}'.format(request_id))
+    # TODO: get real memory used for running this lambda function?
+    print('REPORT RequestId: {}	Duration: {} ms	Billed '
+        'Duration: {} ms Memory Size: {} MB	Max Memory Used: {} MB'.format(
+            request_id, duration_ms, duration_ms, args.memory_mb, 'n/a'))
 
 
 def package_lambda():
