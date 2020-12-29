@@ -7,6 +7,11 @@ import platform
 import signal
 import sys
 import uuid
+import threading
+
+
+class TimeoutException(Exception):
+    pass
 
 
 class LambdaContext(object):
@@ -64,13 +69,24 @@ def lambda_timer(timeout):
         raise Exception('Timeout after {}s'.format(timeout))
 
     if timeout > 0:
-        signal.signal(signal.SIGALRM, handler)
-        signal.alarm(timeout)
-
-        try:
-            yield
-        finally:
-            signal.alarm(0)
+        if hasattr(signal, "SIGALRM"):
+            def signal_handler(signum, frame):
+                raise TimeoutException("Timeout after {} seconds.".format(timeout))
+            signal.signal(signal.SIGALRM, handler)
+            signal.alarm(timeout)
+            try:
+                yield
+            finally:
+                signal.alarm(0)
+        else:
+            timer = threading.Timer(timeout, lambda: _thread.interrupt_main())
+            timer.start()
+            try:
+                yield
+            except KeyboardInterrupt:
+                raise TimeoutException("Timeout after {} seconds.".format(timeout))
+            finally:
+                timer.cancel()
     else:
         yield
 
@@ -99,8 +115,8 @@ def invoke_function():
     duration_ms = round((time.time() - start_time) * 1000, 2)
     print('END RequestId: {}'.format(request_id))
     # TODO: get real memory used for running this lambda function?
-    print('REPORT RequestId: {}	Duration: {} ms	Billed '
-        'Duration: {} ms Memory Size: {} MB	Max Memory Used: {} MB'.format(
+    print('REPORT RequestId: {} Duration: {} ms Billed '
+        'Duration: {} ms Memory Size: {} MB Max Memory Used: {} MB'.format(
             request_id, duration_ms, duration_ms, args.memory_mb, 'n/a'))
 
 
